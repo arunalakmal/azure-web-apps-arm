@@ -10,9 +10,9 @@ jobs:
     uses: .github/workflows/job1.yaml@main
     with:
       job1_input: 'input_value_for_job1'  
-    steps:
-      - name: complete job 1
-        runs: echo "Job 1 is running with input: ${{ inputs.job1_input }}"
+    # steps:
+    #   - name: complete job 1
+    #     runs: echo "Job 1 is running with input: ${{ inputs.job1_input }}"
 
   job2:
     runs-on: ubuntu-latest

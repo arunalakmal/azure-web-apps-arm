@@ -14,21 +14,21 @@ jobs:
     #   - name: complete job 1
     #     runs: echo "Job 1 is running with input: ${{ inputs.job1_input }}"
 
-  job2:
-    # runs-on: ubuntu-latest
-    needs: job1 
-    uses: ./.github/workflows/job2.yaml
-    with:
-      job2_input: 'input_value_for_job2'
-    # steps:
-    #   - name: Checkout Code
-    #     runs: echo "Job 2 is running with input: ${{ inputs.job2_input }}"
-  job3:
-    # runs-on: ubuntu-latest
-    needs: [job1, job2]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Final Job
-        run: |
-          echo "Running final job after Job 1 and Job 2"
+  # job2:
+  #   # runs-on: ubuntu-latest
+  #   needs: job1 
+  #   uses: ./.github/workflows/job2.yaml
+  #   with:
+  #     job2_input: 'input_value_for_job2'
+  #   # steps:
+  #   #   - name: Checkout Code
+  #   #     runs: echo "Job 2 is running with input: ${{ inputs.job2_input }}"
+  # job3:
+  #   # runs-on: ubuntu-latest
+  #   needs: [job1, job2]
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v2
+  #     - name: Final Job
+  #       run: |
+  #         echo "Running final job after Job 1 and Job 2"

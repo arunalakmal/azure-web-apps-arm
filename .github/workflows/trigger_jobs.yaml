@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  job1:
+  calling_job1:
     # runs-on: ubuntu-latest
     uses: ./.github/workflows/job1.yaml
     with:

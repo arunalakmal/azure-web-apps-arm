@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Trigger Job 1
-        uses: azure-web-apps-arm/.github/actions/job1.yaml
+        uses: azure-web-apps-arm/.github/actions/job1.yaml@main
         with:
           job1_input: 'input_value_for_job1'  
   job2:
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Trigger Job 2
-        uses: azure-web-apps-arm/.github/actions/job2.yaml
+        uses: azure-web-apps-arm/.github/actions/job2.yaml@main
         with:
           job2_input: 'input_value_for_job2'
   job3:

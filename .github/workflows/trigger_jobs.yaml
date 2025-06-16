@@ -6,7 +6,7 @@ on:
 
 jobs:
   calling_job1:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
     uses: ./.github/workflows/job1.yaml
     with:
       job1_input: 'input_value_for_job1'  

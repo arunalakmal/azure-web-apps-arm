@@ -1,10 +1,12 @@
 name: Trigger Job 2
 description: This action triggers Job 1 in the workflow.
-inputs:
-  job1_input:
-    description: Input for Job 1
-    required: true
-    default: 'default_value'
+on:
+  workflow_call:  
+    inputs:
+      job1_input:
+        description: Input for Job 2
+        required: true
+        default: 'default_value'
 jobs:
   steps: 
     - name: Trigger Job 2

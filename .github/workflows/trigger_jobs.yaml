@@ -7,13 +7,13 @@ on:
 jobs:
   job1:
     runs-on: ubuntu-latest
+    uses: .github/workflows/job1.yaml@main
+    with:
+      job1_input: 'input_value_for_job1'  
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Trigger Job 1
-        uses: arunalakmal/azure-web-apps-arm/.github/workflows/job1.yaml@main
-        with:
-          job1_input: 'input_value_for_job1'  
+      - name: complete job 1
+        runs: echo "Job 1 is running with input: ${{ inputs.job1_input }}"
+
   job2:
     runs-on: ubuntu-latest
     needs: job1 

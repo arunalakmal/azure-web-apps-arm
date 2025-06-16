@@ -1,16 +1,18 @@
-name: Trigger Job 2
-description: This action triggers Job 1 in the workflow.
+name: Trigger Job 1
 on:
-  workflow_call:  
+  workflow_call:
     inputs:
-      job1_input:
+      job2_input:
         description: Input for Job 2
         required: true
-        default: 'default_value'
+        type: string
+
 jobs:
-  steps: 
-    - name: Trigger Job 2
-      run: |
-        echo "Running Job 2 with input: ${{ inputs.job1_input }}"
-        # Add your job 2 logic here
-        echo "Job 2 completed successfully."
+  job2:
+    # runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Job 2
+        run: |
+          echo "Running Job 2 with input: ${{ inputs.job2_input }}"
+          # Add your job 2 logic here
+          echo "Job 2 completed successfully."

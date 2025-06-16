@@ -1,0 +1,14 @@
+name: Trigger Job 1
+description: This action triggers Job 1 in the workflow.
+inputs:
+  job1_input:
+    description: Input for Job 1
+    required: true
+    default: 'default_value'
+jobs:
+  steps: 
+    - name: Trigger Job 1
+      run: |
+        echo "Running Job 1 with input: ${{ inputs.job1_input }}"
+        # Add your job 1 logic here
+        echo "Job 1 completed successfully."

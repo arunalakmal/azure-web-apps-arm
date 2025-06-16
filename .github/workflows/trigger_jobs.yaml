@@ -7,7 +7,7 @@ on:
 jobs:
   job1:
     runs-on: ubuntu-latest
-    uses: .github/workflows/job1.yaml@main
+    uses: ./github/workflows/job1.yaml
     with:
       job1_input: 'input_value_for_job1'  
     # steps:

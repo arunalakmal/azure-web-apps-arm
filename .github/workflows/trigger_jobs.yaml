@@ -11,6 +11,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
   calling_job1:
+    if: github.ref == 'refs/heads/feature/' || contains(github.ref, 'refs/heads/feature/')
     uses: ./.github/workflows/job1.yaml
     with:
       job1_input: 'input_value_for_job1'  

@@ -15,7 +15,7 @@ jobs:
           echo "Target branch: ${{ github.event.pull_request.base.ref }}"
           echo "Commit SHA: ${{ github.sha }}"
           echo "Event: ${{ github.event_name }}"
-          echo "Feature branch SHA: ${{ github.event.pull_request.head.sha }}
+          echo "Feature branch SHA: ${{ github.event.pull_request.head.sha }}"
           echo "Merge commit SHA: ${{ github.sha }}"
           
       - name: Extract branch name

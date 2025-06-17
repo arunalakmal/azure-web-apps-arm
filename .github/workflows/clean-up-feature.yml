@@ -1,0 +1,29 @@
+name: Post-Merge Cleanup
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print branch info
+        run: |
+          echo "Merged PR: ${{ github.event.pull_request.number }}"
+          echo "Source branch: ${{ github.event.pull_request.head.ref }}"
+          echo "Target branch: ${{ github.event.pull_request.base.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Event: ${{ github.event_name }}"
+          
+      - name: Extract branch name
+        id: extract-branch
+        run: |
+          # Remove 'refs/heads/' prefix if present
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          
+      - name: Use extracted branch name
+        run: |
+          echo "Cleaning up after branch: ${{ steps.extract-branch.outputs.branch_name }}"
+          # Add your cleanup logic here

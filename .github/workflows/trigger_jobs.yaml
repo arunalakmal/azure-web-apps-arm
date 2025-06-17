@@ -5,9 +5,11 @@ on:
       - main
 
 jobs:
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
   calling_job1:
     uses: ./.github/workflows/job1.yaml
     with:

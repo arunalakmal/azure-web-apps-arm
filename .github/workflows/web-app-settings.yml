@@ -64,8 +64,7 @@ jobs:
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --slot ${{ env.SLOT_NAME }} \
-            --settings "$setting" \
-            --slot-settings
+            --slot-settings "$setting" \
         done
 
     - name: Verify settings

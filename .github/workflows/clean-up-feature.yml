@@ -5,7 +5,7 @@ on:
 
 jobs:
   cleanup:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || ${{ github.event.pull_request.closed }}
     runs-on: ubuntu-latest
     steps:
       - name: Print branch info
@@ -28,4 +28,9 @@ jobs:
       - name: Use extracted branch name
         run: |
           echo "Cleaning up after branch: ${{ steps.extract-branch.outputs.branch_name }}"
-          # Add your cleanup logic here
+          # Add your cleanup logic here, logic to delete the branch, etc.
+          # For example, you can use the GitHub CLI to delete the branch:
+          # gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ steps.extract-branch.outputs.branch_name }}
+          # Uncomment the above line to actually delete the branch
+          echo "Cleanup completed for branch: ${{ steps.extract-branch.outputs.branch_name }}"
+          # You can add more cleanup steps as needed

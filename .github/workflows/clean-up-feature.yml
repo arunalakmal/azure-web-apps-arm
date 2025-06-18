@@ -33,3 +33,4 @@ jobs:
           # gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ steps.extract-branch.outputs.branch_name }}
           # Uncomment the above line to actually delete the branch
           echo "Cleanup completed for branch: ${{ steps.extract-branch.outputs.branch_name }}"
+          # You can add more cleanup steps as needed

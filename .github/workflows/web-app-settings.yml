@@ -48,11 +48,18 @@ jobs:
     - name: Apply slot-specific settings
       run: |
         # Filter slot-specific settings and apply
-        jq -r '.settings[] | 
-               select(.slotSetting == true) | 
-               "\(.name)=\(.value | @json)"' settings/appsettings.json | \
+        SLOT_SETTINGS_COUNT=$(jq '[.settings[] | select(.slotSetting == true)] | length' settings/appsettings.json)
+        
+        if [ "$SLOT_SETTINGS_COUNT" -eq 0 ]; then
+          echo "No slot-specific settings to apply"
+          exit 0
+        fi
+
+        # Process settings with proper JSON handling
+        jq -r '.settings[] | select(.slotSetting == true) | 
+              "\(.name)=\(.value)"' settings/appsettings.json | \
         while IFS= read -r setting; do
-          echo "Applying slot-specific setting: $setting"
+          echo "Applying setting: ${setting%%=*}"
           az webapp config appsettings set \
             --name ${{ env.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \

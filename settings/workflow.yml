@@ -1,0 +1,57 @@
+name: Configure Azure Web App Settings
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'appsettings.json' ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 'your-webapp-name'
+  RESOURCE_GROUP: 'your-resource-group'
+
+jobs:
+  configure-settings:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Parse JSON settings
+      id: parse-settings
+      run: |
+        # Read JSON file and format for Azure CLI
+        SETTINGS_JSON=$(jq -c '.settings[] | "\(.name)=\(.value)"' appsettings.json | tr '\n' ' ')
+        echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
+
+    - name: Apply settings to Web App
+      run: |
+        az webapp config appsettings set \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --settings ${{ steps.parse-settings.outputs.settings_json }}
+
+    - name: Apply slot-specific settings
+      run: |
+        # Filter slot-specific settings and apply
+        jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' appsettings.json | \
+        while read -r setting; do
+          az webapp config appsettings set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --settings "$setting" \
+            --slot-settings
+        done
+
+    - name: Verify settings
+      run: |
+        echo "Current settings:"
+        az webapp config appsettings list \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --output table

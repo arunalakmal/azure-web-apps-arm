@@ -49,13 +49,15 @@ jobs:
       run: |
         # Filter slot-specific settings and apply
         jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' settings/appsettings.json | \
-        while read -r setting; do
-          az webapp config appsettings set \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --slot ${{ env.SLOT_NAME }} \
-            --settings "$setting" \
-            --slot-settings
+        while IFS= read -r setting; do
+          if [ -n "$setting" ]; then
+            az webapp config appsettings set \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot ${{ env.SLOT_NAME }} \
+              --settings "$setting" \
+              --slot-settings
+          fi
         done
 
     - name: Verify settings

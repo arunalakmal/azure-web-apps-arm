@@ -45,12 +45,12 @@ runs:
           | select(.slotSetting == false)
           | if .value | test("^@Microsoft.KeyVault\\(")
               then "\(.name)=\(.value)"
-            elif .value | test("[\\s\"\'`$]")
+            elif .value | test("[\\s\"'\''`$]")
               then "\(.name)=\(.value | @sh)"
             else "\(.name)=\(.value)"
             end
         ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
-        
+
         if [ -n "$SETTINGS" ]; then
           echo "Applying general app settings..."
           az webapp config appsettings set \

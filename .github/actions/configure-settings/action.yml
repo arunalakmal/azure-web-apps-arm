@@ -20,13 +20,13 @@ inputs:
 runs:
   using: "composite"  
   steps:
-    - name: Parse JSON settings
-      shell: bash
-      id: parse-settings
-      run: |
-        # Read JSON file and format for Azure CLI
-        SETTINGS_JSON=$(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "settings/feature/appsettings.json" | tr '\n' ' ')
-        echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
+    # - name: Parse JSON settings
+    #   shell: bash
+    #   id: parse-settings
+    #   run: |
+    #     # Read JSON file and format for Azure CLI
+    #     SETTINGS_JSON=$(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "settings/feature/appsettings.json" | tr '\n' ' ')
+    #     echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
 
     - name: Apply settings to Web App
       shell: bash

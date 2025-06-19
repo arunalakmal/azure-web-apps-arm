@@ -21,6 +21,7 @@ runs:
   using: "composite"  
   steps:
     - name: Parse JSON settings
+      shell: bash
       id: parse-settings
       run: |
         # Read JSON file and format for Azure CLI
@@ -28,14 +29,16 @@ runs:
         echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
 
     - name: Apply settings to Web App
+      shell: bash
       run: |
         az webapp config appsettings set \
           --name ${{ inputs.AZURE_WEBAPP_NAME }} \
           --slot ${{ inputs.SLOT_NAME }} \
-          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --resource-group ${{ inputs.RESOURCE_GROUP }} \
           --settings ${{ steps.parse-settings.outputs.settings_json }}
 
     - name: Apply slot-specific settings
+      shell: bash
       run: |
         SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' ${{ inputs.SETTINGS_LOCATION }}/appsettings.json)
           
@@ -54,6 +57,7 @@ runs:
           done <<< "$SLOT_SETTINGS"
 
     - name: Verify settings
+      shell: bash
       run: |
         echo "Current settings:"
         az webapp config appsettings list \

@@ -1,0 +1,32 @@
+name: Swap Azure Webapp Slot upon approval
+description: This action swaps the Azure Web App slot with the production slot upon approval.
+inputs:
+  AZURE_WEBAPP_NAME:
+    description: The name of the Azure Web App.
+    required: true
+    type: string
+  RESOURCE_GROUP:
+    description: The name of the Azure Resource Group.
+    required: true
+    type: string
+  SOURCE_SLOT_NAME:
+    description: The name of the Azure Web App Slot to swap.
+    required: true
+    type: string
+  TARGET_SLOT_NAME:
+    description: The name of the Azure Web App Slot to swap with.
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Swap Web App Slots
+      shell: bash
+      run: |
+        az webapp deployment slot swap \
+          --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+          --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+          --slot "${{ inputs.SOURCE_SLOT_NAME }}" \
+          --target-slot "${{ inputs.TARGET_SLOT_NAME }}"
+          
+        echo "Swapped slot '${{ inputs.SOURCE_SLOT_NAME }}' with '${{ inputs.TARGET_SLOT_NAME }}' successfully."

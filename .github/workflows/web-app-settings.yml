@@ -38,6 +38,14 @@ jobs:
         SLOT_NAME: ${{ env.SLOT_NAME }}
         SETTINGS_LOCATION: 'settings/feature'  # Settings File Location wiout a leading slash
 
+    - name: Swap Azure Web App Slots
+      uses: ./.github/actions/swap-slot
+      with:
+        AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}
+        RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+        SOURCE_SLOT_NAME: ${{ env.SLOT_NAME }}
+        TARGET_SLOT_NAME: 'production'  # Replace with your target slot name if needed
+
     # - name: Parse JSON settings
     #   id: parse-settings
     #   run: |

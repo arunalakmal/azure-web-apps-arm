@@ -8,8 +8,8 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 'myappxxx'
-  RESOURCE_GROUP: '1-4ba8b344-playground-sandbox'
-  SLOT_NAME: 'staging'  # Replace with your slot name if needed
+  RESOURCE_GROUP: '1-bd26b9ec-playground-sandbox'
+  SLOT_NAME: 'v2'  # Replace with your slot name if needed
 
 jobs:
   configure-settings:

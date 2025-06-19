@@ -30,44 +30,52 @@ jobs:
           --password ${{ secrets.AZURE_CLIENT_SECRET }} \
           --tenant ${{ secrets.AZURE_TENANT_ID }}
 
-    - name: Parse JSON settings
-      id: parse-settings
-      run: |
-        # Read JSON file and format for Azure CLI
-        SETTINGS_JSON=$(jq -c '.settings[] | "\(.name)=\(.value)"' settings/appsettings.json | tr '\n' ' ')
-        echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
+    - name: Configure Azure Web App Settings
+      uses: ./.github/actions/configure-settings
+      with:
+        AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}
+        RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+        SLOT_NAME: ${{ env.SLOT_NAME }}
+        SETTINGS_LOCATION: 'settings/feature'  # Settings File Location wiout a leading slash
 
-    - name: Apply settings to Web App
-      run: |
-        az webapp config appsettings set \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --slot ${{ env.SLOT_NAME }} \
-          --resource-group ${{ env.RESOURCE_GROUP }} \
-          --settings ${{ steps.parse-settings.outputs.settings_json }}
+    # - name: Parse JSON settings
+    #   id: parse-settings
+    #   run: |
+    #     # Read JSON file and format for Azure CLI
+    #     SETTINGS_JSON=$(jq -c '.settings[] | "\(.name)=\(.value)"' settings/appsettings.json | tr '\n' ' ')
+    #     echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
 
-    - name: Apply slot-specific settings
-      run: |
-        SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' settings/appsettings.json)
+    # - name: Apply settings to Web App
+    #   run: |
+    #     az webapp config appsettings set \
+    #       --name ${{ env.AZURE_WEBAPP_NAME }} \
+    #       --slot ${{ env.SLOT_NAME }} \
+    #       --resource-group ${{ env.RESOURCE_GROUP }} \
+    #       --settings ${{ steps.parse-settings.outputs.settings_json }}
+
+    # - name: Apply slot-specific settings
+    #   run: |
+    #     SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' settings/appsettings.json)
           
-          if [ -z "$SLOT_SETTINGS" ]; then
-            echo "No slot-specific settings to apply."
-            exit 0
-          fi
+    #       if [ -z "$SLOT_SETTINGS" ]; then
+    #         echo "No slot-specific settings to apply."
+    #         exit 0
+    #       fi
 
-          while IFS= read -r SETTING; do
-            echo "Applying slot-specific setting: $SETTING"
-            az webapp config appsettings set \
-              --name "${{ env.AZURE_WEBAPP_NAME }}" \
-              --slot "${{ env.SLOT_NAME }}" \
-              --resource-group "${{ env.RESOURCE_GROUP }}" \
-              --slot-settings "$SETTING"
-          done <<< "$SLOT_SETTINGS"
+    #       while IFS= read -r SETTING; do
+    #         echo "Applying slot-specific setting: $SETTING"
+    #         az webapp config appsettings set \
+    #           --name "${{ env.AZURE_WEBAPP_NAME }}" \
+    #           --slot "${{ env.SLOT_NAME }}" \
+    #           --resource-group "${{ env.RESOURCE_GROUP }}" \
+    #           --slot-settings "$SETTING"
+    #       done <<< "$SLOT_SETTINGS"
 
-    - name: Verify settings
-      run: |
-        echo "Current settings:"
-        az webapp config appsettings list \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group ${{ env.RESOURCE_GROUP }} \
-          --slot ${{ env.SLOT_NAME }} \
-          --output table
+    # - name: Verify settings
+    #   run: |
+    #     echo "Current settings:"
+    #     az webapp config appsettings list \
+    #       --name ${{ env.AZURE_WEBAPP_NAME }} \
+    #       --resource-group ${{ env.RESOURCE_GROUP }} \
+    #       --slot ${{ env.SLOT_NAME }} \
+    #       --output table

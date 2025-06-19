@@ -1,0 +1,63 @@
+name: Configuring Azure Webapp Slot Settings
+description: This action configures the Azure Webapp slot settings.
+inputs:
+  AZURE_WEBAPP_NAME:
+    description: The name of the Azure Web App.
+    required: true
+    type: string
+  RESOURCE_GROUP:
+    description: The name of the Azure Resource Group.
+    required: true
+    type: string
+  SLOT_NAME:
+    description: The name of the Azure Web App Slot.
+    required: true
+    type: string
+  SETTINGS_LOCATION:
+    description: The location of the settings file.
+    required: true
+    type: string
+runs:
+  using: "composite"  
+  steps:
+    - name: Parse JSON settings
+      id: parse-settings
+      run: |
+        # Read JSON file and format for Azure CLI
+        SETTINGS_JSON=$(jq -c '.settings[] | "\(.name)=\(.value)"' ${{ inputs.SETTINGS_LOCATION }}/appsettings.json | tr '\n' ' ')
+        echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
+
+    - name: Apply settings to Web App
+      run: |
+        az webapp config appsettings set \
+          --name ${{ inputs.AZURE_WEBAPP_NAME }} \
+          --slot ${{ inputs.SLOT_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --settings ${{ steps.parse-settings.outputs.settings_json }}
+
+    - name: Apply slot-specific settings
+      run: |
+        SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' ${{ inputs.SETTINGS_LOCATION }}/appsettings.json)
+          
+          if [ -z "$SLOT_SETTINGS" ]; then
+            echo "No slot-specific settings to apply."
+            exit 0
+          fi
+
+          while IFS= read -r SETTING; do
+            echo "Applying slot-specific setting: $SETTING"
+            az webapp config appsettings set \
+              --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+              --slot "${{ inputs.SLOT_NAME }}" \
+              --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+              --slot-settings "$SETTING"
+          done <<< "$SLOT_SETTINGS"
+
+    - name: Verify settings
+      run: |
+        echo "Current settings:"
+        az webapp config appsettings list \
+          --name ${{ inputs.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ inputs.RESOURCE_GROUP }} \
+          --slot ${{ inputs.SLOT_NAME }} \
+          --output table

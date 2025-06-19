@@ -40,26 +40,27 @@ runs:
     - name: Apply non-slot settings to Web App
       shell: bash
       run: |
-        SETTINGS=$(jq -r '
+        echo "Processing general app settings..."
+        jq -r '
           .settings[]
           | select(.slotSetting == false)
           | if .value | test("^@Microsoft.KeyVault\\(")
               then "\(.name)=\(.value)"
-            elif .value | test("[\\s\"'$'`']")
+            elif .value | test("[\\s\"'\''`$]")
               then "\(.name)=\(.value | @sh)"
             else "\(.name)=\(.value)"
             end
-        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
+        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" > general_settings.txt
 
-        if [ -n "$SETTINGS" ]; then
-          echo "Applying general app settings..."
+        if [ ! -s general_settings.txt ]; then
+          echo "No general settings to apply."
+        else
+          SETTINGS=$(cat general_settings.txt | tr '\n' ' ')
           az webapp config appsettings set \
             --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
             --resource-group "${{ inputs.RESOURCE_GROUP }}" \
             --slot "${{ inputs.SLOT_NAME }}" \
             --settings $SETTINGS
-        else
-          echo "No general app settings to apply."
         fi
 
     # - name: Apply slot-specific settings
@@ -84,30 +85,30 @@ runs:
     - name: Apply slot-specific settings
       shell: bash
       run: |
-        SLOT_SETTINGS=$(jq -r '
+        echo "Processing slot-specific settings..."
+        jq -r '
           .settings[]
           | select(.slotSetting == true)
           | if .value | test("^@Microsoft.KeyVault\\(")
               then "\(.name)=\(.value)"
-            elif .value | test("[\\s\"\'`$]")
+            elif .value | test("[\\s\"'\''`$]")
               then "\(.name)=\(.value | @sh)"
             else "\(.name)=\(.value)"
             end
-        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json")
+        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" > slot_settings.txt
 
-        if [ -z "$SLOT_SETTINGS" ]; then
+        if [ ! -s slot_settings.txt ]; then
           echo "No slot-specific settings to apply."
-          exit 0
+        else
+          while IFS= read -r SETTING; do
+            echo "Applying slot-specific setting: $SETTING"
+            az webapp config appsettings set \
+              --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+              --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+              --slot "${{ inputs.SLOT_NAME }}" \
+              --slot-settings "$SETTING"
+          done < slot_settings.txt
         fi
-
-        while IFS= read -r SETTING; do
-          echo "Applying slot-specific setting: $SETTING"
-          az webapp config appsettings set \
-            --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
-            --resource-group "${{ inputs.RESOURCE_GROUP }}" \
-            --slot "${{ inputs.SLOT_NAME }}" \
-            --slot-settings "$SETTING"
-        done <<< "$SLOT_SETTINGS"
 
     - name: Verify settings
       shell: bash

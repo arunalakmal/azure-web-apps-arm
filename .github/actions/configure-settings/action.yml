@@ -28,33 +28,82 @@ runs:
     #     SETTINGS_JSON=$(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "settings/feature/appsettings.json" | tr '\n' ' ')
     #     echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
 
-    - name: Apply settings to Web App
+    # - name: Apply settings to Web App
+    #   shell: bash
+    #   run: |
+    #     az webapp config appsettings set \
+    #       --name ${{ inputs.AZURE_WEBAPP_NAME }} \
+    #       --slot ${{ inputs.SLOT_NAME }} \
+    #       --resource-group ${{ inputs.RESOURCE_GROUP }} \
+    #       --settings $(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
+
+    - name: Apply non-slot settings to Web App
       shell: bash
       run: |
-        az webapp config appsettings set \
-          --name ${{ inputs.AZURE_WEBAPP_NAME }} \
-          --slot ${{ inputs.SLOT_NAME }} \
-          --resource-group ${{ inputs.RESOURCE_GROUP }} \
-          --settings $(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
+        SETTINGS_STRING=$(jq -r '
+          .settings[] 
+          | select(.slotSetting != true) 
+          | if (.value | test("[()@]")) 
+              then "\(.name)=\(.value | @sh)" 
+              else "\(.name)=\(.value)" 
+            end
+        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
+
+        if [ -n "$SETTINGS_STRING" ]; then
+          echo "Applying non-slot settings..."
+          az webapp config appsettings set \
+            --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+            --slot "${{ inputs.SLOT_NAME }}" \
+            --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+            --settings $SETTINGS_STRING
+        else
+          echo "No non-slot settings to apply."
+        fi
+
+    # - name: Apply slot-specific settings
+    #   shell: bash
+    #   run: |
+    #     SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' ${{ inputs.SETTINGS_LOCATION }}/appsettings.json)
+          
+    #       if [ -z "$SLOT_SETTINGS" ]; then
+    #         echo "No slot-specific settings to apply."
+    #         exit 0
+    #       fi
+
+    #       while IFS= read -r SETTING; do
+    #         echo "Applying slot-specific setting: $SETTING"
+    #         az webapp config appsettings set \
+    #           --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+    #           --slot "${{ inputs.SLOT_NAME }}" \
+    #           --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+    #           --slot-settings "$SETTING"
+    #       done <<< "$SLOT_SETTINGS"
 
     - name: Apply slot-specific settings
       shell: bash
       run: |
-        SLOT_SETTINGS=$(jq -r '.settings[] | select(.slotSetting == true) | "\(.name)=\(.value)"' ${{ inputs.SETTINGS_LOCATION }}/appsettings.json)
-          
-          if [ -z "$SLOT_SETTINGS" ]; then
-            echo "No slot-specific settings to apply."
-            exit 0
-          fi
+        SLOT_SETTINGS=$(jq -r '
+          .settings[] 
+          | select(.slotSetting == true) 
+          | if (.value | test("[()@]")) 
+              then "\(.name)=\(.value | @sh)" 
+              else "\(.name)=\(.value)" 
+            end
+        ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json")
 
-          while IFS= read -r SETTING; do
-            echo "Applying slot-specific setting: $SETTING"
-            az webapp config appsettings set \
-              --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
-              --slot "${{ inputs.SLOT_NAME }}" \
-              --resource-group "${{ inputs.RESOURCE_GROUP }}" \
-              --slot-settings "$SETTING"
-          done <<< "$SLOT_SETTINGS"
+        if [ -z "$SLOT_SETTINGS" ]; then
+          echo "No slot-specific settings to apply."
+          exit 0
+        fi
+
+        while IFS= read -r SETTING; do
+          echo "Applying slot-specific setting: $SETTING"
+          az webapp config appsettings set \
+            --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
+            --slot "${{ inputs.SLOT_NAME }}" \
+            --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+            --slot-settings "$SETTING"
+        done <<< "$SLOT_SETTINGS"
 
     - name: Verify settings
       shell: bash

@@ -25,7 +25,7 @@ runs:
       id: parse-settings
       run: |
         # Read JSON file and format for Azure CLI
-        SETTINGS_JSON=$(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
+        SETTINGS_JSON=$(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "settings/feature/appsettings.json" | tr '\n' ' ')
         echo "settings_json=${SETTINGS_JSON//\"/}" >> $GITHUB_OUTPUT
 
     - name: Apply settings to Web App
@@ -35,7 +35,7 @@ runs:
           --name ${{ inputs.AZURE_WEBAPP_NAME }} \
           --slot ${{ inputs.SLOT_NAME }} \
           --resource-group ${{ inputs.RESOURCE_GROUP }} \
-          --settings ${{ steps.parse-settings.outputs.settings_json }}
+          --settings $(jq -r '.settings[] | "\(.name)=\"\(.value)\""' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
 
     - name: Apply slot-specific settings
       shell: bash

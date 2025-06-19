@@ -39,6 +39,7 @@ jobs:
         SETTINGS_LOCATION: 'settings/feature'  # Settings File Location wiout a leading slash
 
     - name: Swap Azure Web App Slots
+      needs: [configure-settings]
       uses: ./.github/actions/swap-slot
       with:
         AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}

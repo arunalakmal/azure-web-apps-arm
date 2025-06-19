@@ -40,24 +40,26 @@ runs:
     - name: Apply non-slot settings to Web App
       shell: bash
       run: |
-        SETTINGS_STRING=$(jq -r '
-          .settings[] 
-          | select(.slotSetting != true) 
-          | if (.value | test("[()@]")) 
-              then "\(.name)=\(.value | @sh)" 
-              else "\(.name)=\(.value)" 
+        SETTINGS=$(jq -r '
+          .settings[]
+          | select(.slotSetting == false)
+          | if .value | test("^@Microsoft.KeyVault\\(")
+              then "\(.name)=\(.value)"
+            elif .value | test("[\\s\"\'`$]")
+              then "\(.name)=\(.value | @sh)"
+            else "\(.name)=\(.value)"
             end
         ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json" | tr '\n' ' ')
-
-        if [ -n "$SETTINGS_STRING" ]; then
-          echo "Applying non-slot settings..."
+        
+        if [ -n "$SETTINGS" ]; then
+          echo "Applying general app settings..."
           az webapp config appsettings set \
             --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
-            --slot "${{ inputs.SLOT_NAME }}" \
             --resource-group "${{ inputs.RESOURCE_GROUP }}" \
-            --settings $SETTINGS_STRING
+            --slot "${{ inputs.SLOT_NAME }}" \
+            --settings $SETTINGS
         else
-          echo "No non-slot settings to apply."
+          echo "No general app settings to apply."
         fi
 
     # - name: Apply slot-specific settings
@@ -83,11 +85,13 @@ runs:
       shell: bash
       run: |
         SLOT_SETTINGS=$(jq -r '
-          .settings[] 
-          | select(.slotSetting == true) 
-          | if (.value | test("[()@]")) 
-              then "\(.name)=\(.value | @sh)" 
-              else "\(.name)=\(.value)" 
+          .settings[]
+          | select(.slotSetting == true)
+          | if .value | test("^@Microsoft.KeyVault\\(")
+              then "\(.name)=\(.value)"
+            elif .value | test("[\\s\"\'`$]")
+              then "\(.name)=\(.value | @sh)"
+            else "\(.name)=\(.value)"
             end
         ' "${{ inputs.SETTINGS_LOCATION }}/appsettings.json")
 
@@ -100,8 +104,8 @@ runs:
           echo "Applying slot-specific setting: $SETTING"
           az webapp config appsettings set \
             --name "${{ inputs.AZURE_WEBAPP_NAME }}" \
-            --slot "${{ inputs.SLOT_NAME }}" \
             --resource-group "${{ inputs.RESOURCE_GROUP }}" \
+            --slot "${{ inputs.SLOT_NAME }}" \
             --slot-settings "$SETTING"
         done <<< "$SLOT_SETTINGS"
 

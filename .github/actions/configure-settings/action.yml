@@ -45,7 +45,7 @@ runs:
           | select(.slotSetting == false)
           | if .value | test("^@Microsoft.KeyVault\\(")
               then "\(.name)=\(.value)"
-            elif .value | test("[\\s\"'\''`$]")
+            elif .value | test("[\\s\"'$'`']")
               then "\(.name)=\(.value | @sh)"
             else "\(.name)=\(.value)"
             end

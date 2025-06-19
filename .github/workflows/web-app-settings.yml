@@ -69,4 +69,5 @@ jobs:
         az webapp config appsettings list \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --resource-group ${{ env.RESOURCE_GROUP }} \
+          --slot ${{ env.SLOT_NAME }} \
           --output table

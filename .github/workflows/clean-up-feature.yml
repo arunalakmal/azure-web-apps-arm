@@ -2,6 +2,9 @@ name: Post-Merge Cleanup
 on:
   pull_request:
     types: [closed]
+  delete:
+    branches:
+      - '**'
 
 jobs:
   cleanup:

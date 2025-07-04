@@ -20,6 +20,7 @@ jobs:
           echo "Event: ${{ github.event_name }}"
           echo "Feature branch SHA: ${{ github.event.pull_request.head.sha }}"
           echo "Merge commit SHA: ${{ github.sha }}"
+          echo "Deleted branch: ${{ github.event.ref }}"
           
       - name: Extract branch name
         id: extract-branch
